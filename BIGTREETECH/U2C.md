@@ -126,6 +126,8 @@ Avec `dfu-util -l`, vous pouvez vérifier si l'adaptateur a démarré en mode DF
 
 Si dfu-util parvient à détecter une carte en mode DFU, le résultat devrait alors ressembler à ceci :
 <img src=images/U2C/dfu-util_-l.svg>
+en cas d'erreur `dfu-util: Cannot open DFU device 0483:df11 found on devnum 26 (LIBUSB_ERROR_ACCESS)` 
+exécutez `sudo dfu-util -l`
 
 Si le BTT U2C a démarré en mode DFU, vous pouvez le flasher avec cette commande :
 
