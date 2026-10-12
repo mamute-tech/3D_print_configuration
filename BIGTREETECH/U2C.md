@@ -112,7 +112,7 @@ cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/gcc-arm-none-eabi-8-2019-q3-update.cmake
 
 # compiler firmware
-make candlelight_fw
+make budgetcan_fw
 ```
 
 
@@ -131,8 +131,14 @@ exécutez `sudo dfu-util -l`
 
 Si le BTT U2C a démarré en mode DFU, vous pouvez le flasher avec cette commande :
 
+v1.0/1.1
 ```
 make flash-candlelight_fw
+```
+
+v2.0/2.1
+```
+make flash-budgetcan_fw
 ```
 Cela devrait ressembler à ça:
 <img src=images/U2C/flash_candlelight.svg>
