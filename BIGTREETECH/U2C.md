@@ -245,6 +245,21 @@ Enfin, redémarrez le Pi (pour que le service systemd-networkd démarre correcte
 sudo reboot now
 ```
 
+Chaque appareil relié au CANBus génère un "canbus_uuid" basé sur le MCU's UID, pour trouver chaque microcontroller device ID, Assurez-vous que le matériel est sous tension et correctement câblé, puis exécutez :
+
+```
+~/klippy-env/bin/python ~/klipper/scripts/canbus_query.py can0
+```
+
+3. Si un appareil CAN non initialisé est détecté, La commande suivant affichera le canbus_uuid de l'appareil:
+
+```
+Found canbus_uuid=0e0d81e4210c
+```
+
+4. Si Klipper est déjà en cours d'exécution et connecté à cet appareil, le canbus_uuid ne sera pas affiché, ce qui est normal.
+
+
 ## **Precautions**
 
 - les 12/24V et GND doivent être correctement connectés.
