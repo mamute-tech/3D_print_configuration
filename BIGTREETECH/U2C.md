@@ -130,6 +130,7 @@ en cas d'erreur `dfu-util: Cannot open DFU device 0483:df11 found on devnum 26 (
 exécutez `sudo dfu-util -l`
 
 Si le BTT U2C a démarré en mode DFU, vous pouvez le flasher avec cette commande :
+<font  color="red">*il se peut que vous deviez utiliser le `sudo` pour accéder au périphérique DFU.*</font>
 
 v1.0/1.1
 ```
@@ -146,6 +147,11 @@ Cela devrait ressembler à ça:
 **Débrancher et rebrancher l'USB TYPE-C pour redémarrer l'U2C**
 
 ### **Configuration de Klipper**
+
+<font  color="red">***La méthode 1 ci-dessous ne fonctionne plus avec les systèmes récents, vous aurez une erreur en voulant enregistrer le fichier can0 avec nano. L'arborescence décrite dans cette méthode n'est plus d'actualité avec les dernières versions du système d'exploitation***</font>
+
+
+### METHODE 1
 
 Référence de Configuration du Firmware: 
 https://www.klipper3d.org/CANBUS.html
@@ -166,7 +172,7 @@ up ifconfig $IFACE txqueuelen 1024
 ```
 Avec l'éditeur nano `ctrl+s` pour sauver le fichier et `ctrl+x` pour fermer l'éditeur.
 
-<font  color="red">***Mettre la vitesse du CANBus à 1000000 (doit être la même vitesse que celle fixée dans le firmware (1000000) CAN bus speed), entrer "sudo reboot" pour redémarrer le Raspberry Pi.***</font>
+<font  color="blue">***Mettre la vitesse du CANBus à 1000000 (doit être la même vitesse que celle fixée dans le firmware (1000000) CAN bus speed), entrer "sudo reboot" pour redémarrer le Raspberry Pi.***</font>
 
 2. Chaque appareil relié au CANBus génère un "canbus_uuid" basé sur le MCU's UID, pour trouver chaque microcontroller device ID, Assurez-vous que le matériel est sous tension et correctement câblé, puis exécutez :
 
@@ -182,10 +188,68 @@ Found canbus_uuid=0e0d81e4210c
 
 4. Si Klipper est déjà en cours d'exécution et connecté à cet appareil, le canbus_uuid ne sera pas affiché, ce qui est normal.
 
+
+### METHODE 2
+<font  color="red">***Procédure à utiliser avec un système d'exploitation récent.***</font>
+
+Référence de Configuration du Firmware:
+https://canbus.esoterical.online/Getting_Started.html
+
+***à l'origine, la méthode « par défaut » pour configurer le réseau CAN consistait à utiliser un fichier `can0` et le service réseau `ifupdown`. Cependant, `ifupdown` est progressivement abandonné par les distributions Linux plus récentes. L'option la plus universelle semble être d'utiliser plutôt le service `systemd-networkd`. La bonne nouvelle, c'est que ce service semble être installé (même s'il n'est pas forcément activé) sur la plupart des distributions Linux utilisées pour les imprimantes 3D.***
+
+Assurez-vous que le service `systemd-networkd` est activé et démarré en exécutant les commandes suivantes :
+```
+# Aciver systemd-networkd
+sudo systemctl enable systemd-networkd
+
+# Démarrer systemd-networkd
+sudo systemctl start systemd-networkd
+```
+*****Si vous rencontrez une erreur du type « Failed to start systemd-networkd.service: Unit systemd-networkd.service is masked » (ou similaire), exécutez d'abord `sudo systemctl unmask systemd-networkd` pour le démasquer, puis relancez `sudo systemctl start systemd-networkd`.*****
+
+Vérifiez ensuite qu'il fonctionne correctement avec :
+```
+systemctl | grep systemd-networkd
+```
+Assurez-vous qu'il s'affiche comme « loaded active running »
+<img src=images/U2C/loaded_active_running.png>
+
+*****Malheureusement, cela active également le service `systemd-networkd-wait-online`, ce qui peut entraîner un « gel » du système pendant environ deux minutes au démarrage, le temps que les interfaces réseau soient opérationnelles. Si le problème se limitait à l'interface CAN, il existerait des solutions de contournement ; toutefois, comme il existe des cas particuliers où cette attente se produirait tout de même, j'ai constaté qu'il vaut mieux désactiver complètement le service `wait-online` en exécutant la commande suivante :*****
+```
+sudo systemctl disable systemd-networkd-wait-online.service
+```
+Configurez ensuite le paramètre `txqueuelen` pour l'interface en exécutant la commande suivante (copiez la ligne en entier et collez-la dans votre session SSH) :
+```
+echo -e 'SUBSYSTEM=="net", ACTION=="change|add", KERNEL=="can*"  ATTR{tx_queue_len}="128"' | sudo tee /etc/udev/rules.d/10-can.rules > /dev/null
+```
+Pour vérifier que l'action a bien été effectuée, exécutez:
+```
+cat /etc/udev/rules.d/10-can.rules
+```
+Cela devrait ressembler à ça:
+<img src=images/U2C/can_rules.png>
+
+Enfin, pour activer l'interface can0 et définir la vitesse, exécutez la commande suivante :
+```
+echo -e "[Match]\nName=can*\n\n[CAN]\nBitRate=1M\n\n[Link]\nRequiredForOnline=no" | sudo tee /etc/systemd/network/25-can.network > /dev/null
+```
+Pour vérifier que l'action a bien été effectuée, exécutez:
+```
+cat /etc/systemd/network/25-can.network
+```
+Cela devrait ressembler à ça:
+<img src=images/U2C/can_speed.png>
+
+Enfin, redémarrez le Pi (pour que le service systemd-networkd démarre correctement en lisant les fichiers de configuration) avec la commande suivante :
+```
+sudo reboot now
+```
+
 ## **Precautions**
 
 - les 12/24V et GND doivent être correctement connectés.
 - Lors de l'utilisation de la communication CAN, vous devez identifier quel appareil CAN sert de terminaison. Sur chaque terminaison, vous devez placer le cavalier sur la position 120R.
+- ATTENTION à ne pas oublier de mettre le cavalier 120R sur l'U2C afin d'avoir cette extrémité aussi reliée à 120R (toutes les extrémités physiques du bus doivent avoir cette résistance)
 
 
 
@@ -214,3 +278,5 @@ https://docs.meteyou.wtf/btt-u2c-v2.x/candlelight/
 **Documentation CANBUS Klipper:**
 
 https://www.klipper3d.org/CANBUS.html
+
+https://canbus.esoterical.online
