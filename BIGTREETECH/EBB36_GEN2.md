@@ -222,16 +222,90 @@ L'interface I²C permet de connecter des dispositifs tels que des capteurs envir
 **Protection à Plusieurs Niveaux**
 Le port I²C bénéficie d'une protection à plusieurs niveaux. Il est protégé contre les courts-circuits momentanés ainsi que contre les décharges électrostatiques (ESD) grâce à un réseau composé d'une résistance à haute impédance et d'une diode Schottky.
 
+### **Notes:**
+
+- Lorsqu'elles sont alimentées en 24 V, chacune des trois interfaces de ventilateur peut fournir jusqu'à 1 A individuellement. Lorsqu'elles sont alimentées en 5 V, le courant total combiné des trois interfaces de ventilateur ne doit pas dépasser 1,5 A.
+
+## Katapult
+Si vous désirez utiliser le bootloader Katapult (optionnel) vous devez suivre les étapes suivante:
+
+1. Téléchargement de Katapult ou mise à jour des sources:
+```
+test -e ~/katapult && (cd ~/katapult && git pull) || (cd ~ && git clone https://github.com/Arksine/katapult) ; cd ~
+```
+2. Ensuite:
+```
+cd ~/katapult
+make menuconfig
+```
+3. Dans le menu, entrer les informations comme suit pour l'EBB_GEN2 (pour une autre carte, il faudra surement adapter les régleges)
+<img src=images/EBB36_GEN2/katapult_menuconfig.png>
+
+4. Compiler Katapult
+```
+make
+```
+
+5. Placer l'EBB36_GEN2 en mode bootloader
+* Pressez le bouton "boot" de la carte et le maintenir
+* Pressez le bouton "reset" et le relacher
+* Relachez le bouton "boot"
+* Il devrait y avoir une petite led verte qui va s'allumer
+
+5. Verifiez que le périphérique est bien détecté avec la commande suivante:
+```
+lsusb
+```
+vous devriez voir une ligne comme celle-ci:
+
+<img src=images/EBB36_GEN2/katapult_dfu.png>
+
+6. Vous pouvez maintenant flasher votre carte avec:
+```
+sudo dfu-util -R -a 0 -s 0x08000000:mass-erase:force:leave -D ~/katapult/out/katapult.bin -d 0483:df11
+```
+si vous avez une erreur `Error during download get_status` et ensuite `File downloaded successfully` le flashage est ok et vous pouvez ignorer l'erreur
+
+<img src=images/EBB36_GEN2/katapult_downloaded_ok.png>
+
+Si vous n'avez pas le message `File downloaded successfully` essayez avec la commande suivante:
+```
+sudo dfu-util -R -a 0 -s 0x08000000:leave -D ~/katapult/out/katapult.bin -d 0483:df11
+```
+
+7. Katapult est maintenant installé sur votre carte et vous pouvez passer à l'installatin de Klipper apres les étapes suivantes:
+
+- *****Eteingnez votre Pi et votre imprimante*****
+- Mettez en place les cavaliers si besoin
+- Branchez votre carte sur l'adaptateur CANbus si vous utilisez ce mode de communication
+- Cablez les alimentations
+- *****Vous pouvez redémarrer le tout*****
+
+**Exécutez la commande suivante pour vérifier si la carte de la tête d'outil est présente sur le réseau CAN et en attente en mode Katapult. Sautez cette étape si vous n'utilisez pas la communication CAN**
+```
+python3 ~/katapult/scripts/flashtool.py -i can0 -q
+```
+Vous devriez voir apparaître «Found UUID» accompagnée de «Application: Katapult». Si ce n’est pas le cas, essayez de double-cliquer sur le bouton de réinitialisation (reset) situé sur la carte de votre tête d’impression afin de la forcer à passer en mode Katapult.
+
+<img src=images/EBB36_GEN2/katapult_wait.png>
+
+Si vous voyez ce qui précède, notez l'UUID et passez à l'étape consistant à flasher Klipper sur la carte de la tête d'outil.
+
+<font color=red>Si vous ne voyez pas apparaître ici un UUID accompagné de la mention « Application: Katapult » (si vous utilisez une carte principale « usb-can-bridge », vous pourriez voir l'UUID de votre carte avec la mention « application:klipper » ; il s'agit d'autre chose et ce n'est pas ce que nous recherchons), commencez par double-cliquer sur le bouton de réinitialisation (reset) situé sur la carte de votre tête d'outil, puis vérifiez à nouveau.
+
+Si l'UUID n'apparaît toujours pas, retournez à la section « Installation de Katapult » et recommencez la procédure, en vous assurant que les paramètres configurés via `make menuconfig` pour Katapult correspondent parfaitement à la carte de votre tête d'outil.
+
+NE POURSUIVEZ PAS la procédure tant que l'UUID de votre tête d'outil n'apparaît pas avec la mention « application:katapult » lors de l'exécution de la commande : `python3 ~/katapult/scripts/flashtool.py -i can0 -q`</font>
+
+
 ## Klipper
+### Création du firmware Klipper pour l'EBB36_GEN2
 
-### menuconfig
-
-`[*] Enable extra low-level configuration options`
-
-`    Micro-controller Architecture (STMicroelectronics STM32)  --->`
-
-`    Processor model (STM32G0B1)  --->`
-
+rendez vous dans le répertoire Klipper:
+``` 
+cd ~/klipper
+make menuconfig
+```
 
 **Si vous n'utilisez pas katapult**
 
@@ -269,9 +343,120 @@ Le port I²C bénéficie d'une protection à plusieurs niveaux. Il est protégé
 
 <img src=images/EBB36_GEN2/canbus.webp width="800"/>
 
-## **Notes**
+une fois le firmware configuré,pour s'assurer qu'il n'y a pas de vieux fichiers qui traînent, éxécutez:
+```
+make clean
+```
+puis, pour compiler le firmware:
+```
+make
+```
+Il sera enregistré dans: `~/klipper/out/klipper.bin`
 
-- Lorsqu'elles sont alimentées en 24 V, chacune des trois interfaces de ventilateur peut fournir jusqu'à 1 A individuellement. Lorsqu'elles sont alimentées en 5 V, le courant total combiné des trois interfaces de ventilateur ne doit pas dépasser 1,5 A.
+### Si vous n'utilisez pas Katapult (Non recommandé)
+1. Placer l'EBB36_GEN2 en mode bootloader
+* Pressez le bouton "boot" de la carte et le maintenir
+* Pressez le bouton "reset" et le relacher
+* Relachez le bouton "boot"
+* Il devrait y avoir une petite led verte qui va s'allumer
+
+2. Verifiez que le périphérique est bien détecté avec la commande suivante:
+```
+lsusb
+```
+vous devriez voir une ligne comme celle-ci:
+
+<img src=images/EBB36_GEN2/katapult_dfu.png>
+
+6. Vous pouvez maintenant flasher votre carte avec: 
+```
+sudo dfu-util -a 0 -D ~/klipper/out/klipper.bin -s 0x08000000:mass-erase:force:leave
+```
+
+7. Débranchez puis rebranchez l'USB
+
+8. Récupérez l'identifiant USB avec:
+```
+ls /dev/serial/by-id/*
+```
+
+### Avec Katapult (recommandé)
+#### ***Utilisation en mode USB (avec la carte adaptateur USB)*** 
+1. Votre carte EBB36 Gen2 doit être en mode katapult (ce qui doit être le cas si vous avez suivi les instructions d'installation de Katapult) sinon double cliquez sur le bouton "reset"
+
+2. Récupérer l'identifiant USB avec:
+```
+ls /dev/seriel/by-id/*
+```
+vous devriez avoir une ligne avec quelquechose ressemblant à:
+
+`/dev/serial/by-id/usb-katapult_stm32g0b1xx_32001D0001504D4D35313220-if00`
+
+Si ce n'est pas le cas, vous avez un problème de communication, testez en changeant de port USB sur le PI
+
+3. Vous avez besoin du paquet "Python serial" pour communique via la liaison série USB, si vous ne l'avez pas déjà installé, faites:
+```
+sudo apt update
+sudo apt install python3-serial
+```
+
+4. Revenez dans le repertoire katapult pour accéder au script permettant le flash du firmware klipper
+``` 
+cd ~/katapult/script
+```
+
+5. Exécutez le script (avec votre identifiant USB)
+```
+python3 flashtool.py -d votre_ID
+```
+
+6. Récupérez maintenant l'ID USB pour la configuration de Klipper:
+```
+ls /dev/seriel/by-id/*
+```
+vous devriez avoir une ligne avec quelquechose ressemblant à:
+
+`/dev/serial/by-id/usb-klipper_stm32g0b1xx_32001D0001504D4D35313220-if00`
+
+
+#### ***Utilisation en mode CAN (Branché sur un concentrateur CAN)***
+1. Arrêtez le service klipper avec la commande:
+```
+sudo service klipper stop
+```
+
+2. Votre carte EBB36 Gen2 doit être en mode katapult (ce qui doit être le cas si vous avez suivi les instructions d'installation de Katapult) sinon double cliquez sur le bouton "reset"
+* Exécutez la commande suivante pour vérifier si la carte de la tête d'outil est présente sur le réseau CAN et en attente en mode Katapult. Sautez cette étape si vous n'utilisez pas la communication CAN
+```
+python3 ~/katapult/scripts/flashtool.py -i can0 -q
+```
+* Vous devriez voir apparaître «Found UUID» accompagnée de «Application: Katapult». Si ce n’est pas le cas, essayez de double-cliquer sur le bouton de réinitialisation (reset) situé sur la carte de votre tête d’impression afin de la forcer à passer en mode Katapult.
+
+<img src=images/EBB36_GEN2/katapult_wait.png>
+
+* Si vous voyez ce qui précède, notez l'UUID 
+
+3. Exécutez ensuite la commande suivante pour installer le micrologiciel Klipper via Katapult. Utilisez l'UUID que vous venez d'obtenir lors de la requête précédente.
+```
+python3 ~/katapult/scripts/flashtool.py -i can0 -f ~/klipper/out/klipper.bin -u votre_UUID
+```
+
+4. Une fois le flashage terminé, vous pouvez exécuter:
+```
+python3 ~/katapult/scripts/flashtool.py -i can0 -q
+```
+vous devriez voir quelque chose comme ça avec "Application: Klipper" (Au lien de "Application: Katapult" précédement) avec le même UUID.
+
+<img src=images/EBB36_GEN2/katapult_klipper.png>
+
+<font color=red>Si vous n'avez pas le même UUID, vous avez probablement fait une erreur, Veuillez recommencer la compilation de Klipper en vérifiant bien les paramêtres et la procédure de flashage </font>
+
+5. Redemarrez le service Klipper
+```
+sudo service klipper start
+```
+
+
 
 ## Sources
 - [Site Officiel BIQU](http://biqu3d.com)  
