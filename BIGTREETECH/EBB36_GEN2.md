@@ -459,8 +459,14 @@ sudo service klipper start
 
 
 ## Sources
+
+**Documentation BIGTREETECH:**
 - [Site Officiel BIQU](http://biqu3d.com)  
 - [Site Officiel BIGTREETECH](http://bigtree-tech.com)  
 - [Boutique en Ligne](https://biqu.equipment)  
 - [Forum Communauté](https://community.biqu3d.com)  
 - [Documentation BIGTREETECH](https://github.com/bigtreetech/docs)  
+
+**Documentation CANBUS Klipper:**
+- https://www.klipper3d.org/CANBUS.html
+- [Site Esoterical sur le CANbus](https://canbus.esoterical.online/)
