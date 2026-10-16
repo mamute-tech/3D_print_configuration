@@ -281,6 +281,8 @@ sudo dfu-util -R -a 0 -s 0x08000000:leave -D ~/katapult/out/katapult.bin -d 0483
 - Cablez les alimentations
 - *****Vous pouvez redémarrer le tout*****
 
+<font color=red>**Attention si vous utilisez le BIGTREETECH U2C:** *Le brochage de la prise microfit (noire) n'est pas le même sur l'adaptateur USB fourni avec l'EBB36 et l'U2C, par conséquent le cable moulé fourni avec l'EBB36 ne fonctionne qu'avec la carte adaptateur en mode USB, pour utiliser l'U2C vous devez utiliser un autre cable ou couper celui-ci*</font>
+
 **Exécutez la commande suivante pour vérifier si la carte de la tête d'outil est présente sur le réseau CAN et en attente en mode Katapult. Sautez cette étape si vous n'utilisez pas la communication CAN**
 ```
 python3 ~/katapult/scripts/flashtool.py -i can0 -q
