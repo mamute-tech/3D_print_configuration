@@ -281,7 +281,7 @@ sudo dfu-util -R -a 0 -s 0x08000000:leave -D ~/katapult/out/katapult.bin -d 0483
 - Cablez les alimentations
 - *****Vous pouvez redémarrer le tout*****
 
-<font color=red>**Attention si vous utilisez le BIGTREETECH U2C:** *Le brochage de la prise microfit (noire) n'est pas le même sur l'adaptateur USB fourni avec l'EBB36 et l'U2C, par conséquent le cable moulé fourni avec l'EBB36 ne fonctionne qu'avec la carte adaptateur en mode USB, pour utiliser l'U2C vous devez utiliser un autre cable ou couper celui-ci*</font>
+>**Attention si vous utilisez le BIGTREETECH U2C:** *Le brochage de la prise microfit (noire) n'est pas le même sur l'adaptateur USB fourni avec l'EBB36 et l'U2C, par conséquent le cable moulé fourni avec l'EBB36 ne fonctionne qu'avec la carte adaptateur en mode USB, pour utiliser l'U2C vous devez utiliser un autre cable ou couper celui-ci*
 
 **Exécutez la commande suivante pour vérifier si la carte de la tête d'outil est présente sur le réseau CAN et en attente en mode Katapult. Sautez cette étape si vous n'utilisez pas la communication CAN**
 ```
@@ -293,7 +293,7 @@ Vous devriez voir apparaître «Found UUID» accompagnée de «Application: Kata
 
 Si vous voyez ce qui précède, notez l'UUID et passez à l'étape consistant à flasher Klipper sur la carte de la tête d'outil.
 
-<font color=red>Si vous ne voyez pas apparaître ici un UUID accompagné de la mention « Application: Katapult » (si vous utilisez une carte principale « usb-can-bridge », vous pourriez voir l'UUID de votre carte avec la mention « application:klipper » ; il s'agit d'autre chose et ce n'est pas ce que nous recherchons), commencez par double-cliquer sur le bouton de réinitialisation (reset) situé sur la carte de votre tête d'outil, puis vérifiez à nouveau.
+>Si vous ne voyez pas apparaître ici un UUID accompagné de la mention « Application: Katapult » (si vous utilisez une carte principale « usb-can-bridge », vous pourriez voir l'UUID de votre carte avec la mention « application:klipper » ; il s'agit d'autre chose et ce n'est pas ce que nous recherchons), commencez par double-cliquer sur le bouton de réinitialisation (reset) situé sur la carte de votre tête d'outil, puis vérifiez à nouveau.
 
 Si l'UUID n'apparaît toujours pas, retournez à la section « Installation de Katapult » et recommencez la procédure, en vous assurant que les paramètres configurés via `make menuconfig` pour Katapult correspondent parfaitement à la carte de votre tête d'outil.
 
@@ -432,7 +432,10 @@ sudo service klipper stop
 ```
 python3 ~/katapult/scripts/flashtool.py -i can0 -q
 ```
-* Vous devriez voir apparaître «Found UUID» accompagnée de «Application: Katapult». Si ce n’est pas le cas, essayez de double-cliquer sur le bouton de réinitialisation (reset) situé sur la carte de votre tête d’impression afin de la forcer à passer en mode Katapult.
+
+> Vous devriez voir apparaître «Found UUID» accompagnée de «Application: Katapult». Si ce n’est pas le cas, essayez de double-cliquer sur le bouton de réinitialisation (reset) situé sur la carte de votre tête d’impression afin de la forcer à passer en mode Katapult.
+
+>**Attention si vous utilisez le BIGTREETECH U2C:** *Le brochage de la prise microfit (noire) n'est pas le même sur l'adaptateur USB fourni avec l'EBB36 et l'U2C, par conséquent le cable moulé fourni avec l'EBB36 ne fonctionne qu'avec la carte adaptateur en mode USB, pour utiliser l'U2C vous devez utiliser un autre cable ou couper celui-ci*
 
 <img src=images/EBB36_GEN2/katapult_wait.png>
 
@@ -451,7 +454,7 @@ vous devriez voir quelque chose comme ça avec "Application: Klipper" (Au lien d
 
 <img src=images/EBB36_GEN2/katapult_klipper.png>
 
-<font color=red>Si vous n'avez pas le même UUID, vous avez probablement fait une erreur, Veuillez recommencer la compilation de Klipper en vérifiant bien les paramêtres et la procédure de flashage </font>
+>Si vous n'avez pas le même UUID, vous avez probablement fait une erreur, Veuillez recommencer la compilation de Klipper en vérifiant bien les paramêtres et la procédure de flashage
 
 5. Redemarrez le service Klipper
 ```
